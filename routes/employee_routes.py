@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+﻿from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from models.database import db
 from models.employee import Employee
 from email_validator import validate_email, EmailNotValidError
@@ -16,7 +16,7 @@ def validate_employee_data(data, is_update=False):
         errors.append('Email is required')
     else:
         try:
-            validate_email(email)
+            validate_email(email, check_deliverability=False)
         except EmailNotValidError:
             errors.append('Invalid email format')
     
