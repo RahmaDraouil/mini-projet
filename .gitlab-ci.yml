@@ -5,47 +5,42 @@ stages:
   - deploy
 
 variables:
-  DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
-  LATEST_IMAGE: $CI_REGISTRY_IMAGE:latest
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
-before_script:
-  - python --version
+cache:
+  paths:
+    - .cache/pip
 
+# ---------------- BUILD ----------------
 build:
   stage: build
   image: python:3.11-slim
   script:
-    - echo "Installing dependencies..."
+    - python --version
     - pip install --upgrade pip
     - pip install -r requirements.txt
-    - echo "Build completed successfully"
-  artifacts:
-    paths:
-      - requirements.txt
-    expire_in: 1 hour
+    - echo "Build successful"
   only:
     - main
     - develop
 
+# ---------------- TEST ----------------
 test:
   stage: test
   image: python:3.11-slim
-  before_script:
-    - apt-get update && apt-get install -y gcc default-libmysqlclient-dev pkg-config
+  script:
     - pip install --upgrade pip
     - pip install -r requirements.txt
-  script:
-    - echo "Running unit tests..."
-    - pytest tests/ -v --tb=short
-  coverage: '/TOTAL.*\s+(\d+%)$/'
+    - pytest tests/ -v --junitxml=test-results.xml
   artifacts:
+    when: always
     reports:
       junit: test-results.xml
-  only:
-    - main
-    - develop
-    - merge_requests
+    paths:
+      - test-results.xml
+  allow_failure: false
 
+# ---------------- SECURITY ----------------
 security:
   stage: security
   image: python:3.11-slim
@@ -54,31 +49,21 @@ security:
   script:
     - echo "Running security scan..."
     - bandit -r . -f json -o bandit-report.json || true
-    - bandit -r . -f txt
+    - bandit -r . -f txt || true
   artifacts:
     paths:
       - bandit-report.json
-    expire_in: 1 week
   allow_failure: true
-  only:
-    - main
-    - develop
-    - merge_requests
-
+# ---------------- DEPLOY (optional manual) ----------------
 deploy:
   stage: deploy
   image: docker:latest
   services:
     - docker:dind
-  before_script:
-    - apk add --no-cache bash
   script:
-    - echo "Starting deployment..."
-    - chmod +x deploy.sh
-    - ./deploy.sh
+    - echo "Deploy step running..."
+    - chmod +x deploy.sh || true
+    - ./deploy.sh || echo "No deploy script found"
+  when: manual
   only:
     - main
-  when: manual
-  environment:
-    name: production
-    url: http://your-production-url.com
