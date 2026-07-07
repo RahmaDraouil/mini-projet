@@ -1,5 +1,9 @@
 # Employee Management System
 
+[![Tests](https://github.com/username/repo/workflows/Tests/badge.svg)](https://github.com/username/repo/actions)
+[![CI/CD](https://github.com/username/repo/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/username/repo/actions)
+[![Docker](https://github.com/username/repo/workflows/Docker%20Build%20%26%20Push/badge.svg)](https://github.com/username/repo/actions)
+
 A complete full-stack web application for managing employees built with Python Flask, MySQL, and Bootstrap.
 
 ## Features
@@ -8,8 +12,8 @@ A complete full-stack web application for managing employees built with Python F
 - **Modern UI**: Responsive dashboard with Bootstrap 5
 - **RESTful API**: JSON endpoints for integration
 - **Input Validation**: Server-side validation with error handling
-- **Docker Support**: Containerized deployment
-- **CI/CD Ready**: GitLab CI/CD pipeline included
+- **Docker Support**: Containerized deployment with Docker Compose
+- **CI/CD**: GitHub Actions pipelines for automated testing and deployment
 - **Unit Tests**: Comprehensive test coverage with pytest
 
 ## Tech Stack
@@ -137,7 +141,45 @@ bandit -r . -f txt
 
 ## CI/CD Pipeline
 
-The GitLab CI/CD pipeline includes:
+### GitHub Actions Workflows
+
+The project includes three GitHub Actions workflows:
+
+#### 1. Complete CI/CD Pipeline (`ci-cd.yml`)
+Runs on push to main/master/develop branches and pull requests:
+- **Test Job**: Linting, unit tests, coverage reports
+- **Build Job**: Docker image build and push to GitHub Container Registry
+- **Deploy Job**: Automated deployment via SSH (requires secrets)
+- **Security Job**: Vulnerability scanning with Trivy and Safety
+
+#### 2. Simple Tests (`tests.yml`)
+Fast test execution across multiple Python versions (3.10, 3.11, 3.12)
+
+#### 3. Docker Build (`docker.yml`)
+Multi-platform Docker image builds (amd64, arm64) with automatic tagging
+
+### Setting Up CI/CD
+
+1. **Enable GitHub Actions** (enabled by default for public repos)
+
+2. **Configure Deployment Secrets** (Settings → Secrets → Actions):
+   - `SERVER_HOST`: Your server hostname
+   - `SERVER_USER`: SSH username  
+   - `SSH_PRIVATE_KEY`: SSH private key
+   - `SERVER_PORT`: SSH port (optional)
+
+3. **Pull Docker Images**:
+```bash
+docker pull ghcr.io/<username>/<repo>:latest
+```
+
+4. **View Workflow Status**: Check the Actions tab in your repository
+
+For detailed CI/CD documentation, see [`.github/workflows/README.md`](.github/workflows/README.md)
+
+## Legacy CI/CD (GitLab)
+
+The GitLab CI/CD pipeline (`.gitlab-ci.yml`) includes:
 
 1. **Build Stage**: Install dependencies
 2. **Test Stage**: Run pytest
